@@ -42,22 +42,26 @@ public class RecommendationEngine {
 			 
 			 // the map of long to string(real data) will be in - memory you can even implement it to write the indexes in file and you read file later 
 			 // if want to changes from indexes to string.
-			 dataretriever = new retrieveDataFromIndex(((PaxcomFileDataModel) dataModel).getIndexedMapInstansce());
-			 
-//			ItemSimilarity sim = new LogLikelihoodSimilarity(dm);
-			UserSimilarity us =  new EuclideanDistanceSimilarity(dataModel);
+			 retrieveDataFromIndex dataretriever;
+			dataretriever = new retrieveDataFromIndex(((OlistCustomDataModel) dataModel).getIndexedMapInstansce());
 			ItemSimilarity sim = new TanimotoCoefficientSimilarity(dataModel);
-			GenericUserBasedRecommender ubr = new GenericUserBasedRecommender(dataModel, null, us);
-			final GenericItemBasedRecommender recommender = new GenericItemBasedRecommender(dataModel, (ItemSimilarity) sim);
-			
-			
-			for(LongPrimitiveIterator items = dataModel.getItemIDs(); items.hasNext();) {
-				long itemId = items.nextLong();
-				List<RecommendedItem>recommendations = recommender.mostSimilarItems(itemId, 5);    // major step which find similiar items for itemId
-				for(RecommendedItem recommendation : recommendations) {
-					System.out.println(dataretriever.getDataBack(itemId) + "," + dataretriever.getDataBack(recommendation.getItemID()) + "," + recommendation.getValue());
-					}		
-			  }
+			final GenericItemBasedRecommender recommender = new GenericItemBasedRecommender(dataModel,(ItemSimilarity) sim);
+			for (LongPrimitiveIterator userIds = dataModel.getUserIDs(); userIds.hasNext();) {
+				long userId = userIds.nextLong();
+				List<RecommendedItem> recommendations = recommender.recommend(userId, 2);
+				if (recommendations.isEmpty()) {
+					// System.out.println("No recommendation for user:
+					// "+dataretriever.getDataBack(userId));
+				} else {
+					System.out.println();
+					System.out.println("User: " + dataretriever.getDataBack(userId) + "--> ");
+					for (RecommendedItem recommendation : recommendations) {
+						System.out.println(
+								"RecommendedItem[ Item Id:" + dataretriever.getDataBack(recommendation.getItemID())
+										+ ", value:" + recommendation.getValue() + "]");
+					}
+				}
+			}
 		} catch (IOException e) { 
 			System.out.println("There was an error.");
 			e.printStackTrace();
